@@ -5,12 +5,12 @@ const {getCars, getCar, createCar, updateCar, deleteCar} = require('../controlle
 
 router.get("/", getCars);
 
-router.get("/getID", getCar);
+router.get("/ID", getCar);
 
 router.post("/", createCar);
 
-router.put("/:id", updateCar);
+router.put("/ID", updateCar);
 
-router.delete("/:id", deleteCar);
+router.delete("/ID", deleteCar);
 
 module.exports = router;

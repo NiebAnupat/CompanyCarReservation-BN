@@ -5,39 +5,30 @@ const prisma = new PrismaClient()
 
 const getCars = async ( req, res ) => {
     console.log( 'GET /api/cars' )
-    let [cars, imgs] = await Promise.all( [prisma.car.findMany(), prisma.car_img.findMany()] )
-    cars = cars.map( ( car ) => {
-        car.car_imgs = imgs.filter( ( img ) => img.C_ID === car.C_ID )
-        return car
+
+    const cars = await prisma.car.findMany( {
+        include : {
+            car_img : true
+        }
     } )
 
-    const carObjs = cars.map( ( car ) => {
-        return new carObj( car.C_ID, car.C_NAME, car.C_DESCRIPTION, car.C_LEVEL, car.C_STATUS, car.car_imgs )
-    } )
+    console.log( 'Cars : ', cars )
+    res.json( cars )
 
-    res.json( carObjs )
 }
 
 const getCar = async ( req, res ) => {
-    console.log( `GET /api/cars/:${req.body.id}` )
+    console.log( `GET /api/cars/:${ req.body.id }` )
     const car = await prisma.car.findUnique( {
         where : {
             C_ID : parseInt( req.body.id )
+        },
+        include : {
+            car_img : true
         }
     } )
-    const car_imgs = await prisma.car_img.findMany( {
-        where : {
-            C_ID : parseInt( req.body.id )
-        }
-    } )
-
-    const { C_ID, C_NAME, C_DESCRIPTION, C_LEVEL, C_STATUS } = car
-    const imgs = car_imgs.map( ( car_img ) => {
-        return car_img.IMG_FILE
-    } )
-
-    const car_Obj = new carObj( C_ID, C_NAME, C_DESCRIPTION, C_LEVEL, C_STATUS, imgs )
-    res.json( car_Obj )
+    console.log( 'This Car : ', car )
+    res.json( car )
 
 }
 
@@ -59,29 +50,46 @@ const createCar = async ( req, res ) => {
             C_NAME : carObj.C_NAME,
             C_DESCRIPTION : carObj.C_DESCRIPTION,
             C_LEVEL : carObj.C_LEVEL,
+            car_img : {
+                createMany : {
+                    data : [
+                        carObj.get().car_img.map( ( img ) => {
+                            return {
+                                C_ID : img.C_ID,
+                                FileName : img.FileName,
+                                IMG_FILE : img.IMG_FILE
+                            }
+                        } )
+
+                    ]
+                }
+            }
+        },
+        include : {
+            car_img : true
         }
     } )
 
-    const car_imgs = await prisma.car_img.createMany( {
-        data : carObj.get().car_img
-    } )
+    // const car_imgs = await prisma.car_img.createMany( {
+    //     data : carObj.get().car_img
+    // } )
 
 
-    res.json( car, car_imgs )
+    res.json( car )
 }
 
 const updateCar = async ( req, res ) => {
-    console.log( `PUT /api/cars/:${req.query.id}` )
+    console.log( `PUT /api/cars/:${ req.body.id }` )
 
     const images = []
     req.body.images.forEach( ( img ) => {
         images.push( new car_imgObj(
-            req.query.id,
+            req.body.id,
             img.FileName,
             img.IMG_FILE,
         ) )
     } )
-    const carObj = new carObj( parseInt( req.query.id ), req.body.C_NAME, req.body.C_DESCRIPTION, req.body.C_LEVEL, req.body.C_STATUS, images )
+    const carObj = new carObj( parseInt( req.body.id ), req.body.C_NAME, req.body.C_DESCRIPTION, req.body.C_LEVEL, req.body.C_STATUS, images )
 
     const car = await prisma.car.update( {
         where : {
@@ -91,36 +99,46 @@ const updateCar = async ( req, res ) => {
             C_NAME : carObj.C_NAME,
             C_DESCRIPTION : carObj.C_DESCRIPTION,
             C_LEVEL : carObj.C_LEVEL,
+            car_img : {
+                updateMany : {
+                    where : {
+                        C_ID : parseInt( req.query.id )
+                    },
+                    data : [
+                        carObj.get().car_img.map( ( img ) => {
+                            return {
+                                C_ID : img.C_ID,
+                                FileName : img.FileName,
+                                IMG_FILE : img.IMG_FILE
+                            }
+                        })
+                    ]
+                }
+            }
+        },
+        include : {
+            car_img : true
         }
     } )
-
-    const car_imgs = await prisma.car_img.update( {
-        where : {
-            C_ID : parseInt( req.query.id )
-        },
-
-        data : carObj.get().car_img
-    } )
-
     res.json( car )
 }
 
 
 const deleteCar = async ( req, res ) => {
-    console.log( `DELETE /api/cars/:${req.query.id}` )
-    const car = await prisma.car.delete( {
-        where : {
-            C_ID : parseInt(req.query.id )
-        }
-    } )
+    console.log( `DELETE /api/cars/:${ req.body.id }` )
 
     const car_imgs = await prisma.car_img.deleteMany( {
         where : {
-            C_ID : parseInt( req.query.id )
+            C_ID : parseInt( req.body.id )
+        },
+    })
+
+    const car = await prisma.car.delete( {
+        where : {
+            C_ID : parseInt( req.body.id )
         }
     } )
-
-    res.json( car, car_imgs )
+    res.json( car )
 }
 
 module.exports = {
