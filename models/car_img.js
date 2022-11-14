@@ -6,6 +6,12 @@ class car_img {
     _IMG_FILE = null;
 
 
+    constructor( C_ID, FileName, IMG_FILE ) {
+        this._C_ID = C_ID;
+        this._FileName = FileName;
+        this._IMG_FILE = IMG_FILE;
+    }
+
     get IMG_ID() {
         return this._IMG_ID;
     }
