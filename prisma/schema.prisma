@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model car {
+  C_ID          Int           @id @default(autoincrement())
+  C_NAME        String        @db.VarChar(100)
+  C_DESCRIPTION String        @db.Text
+  C_LEVEL       Int
+  C_STATUS      Boolean       @default(true)
+  car_img       car_img[]
+  favorite      favorite[]
+  reservation   reservation[]
+}
+
+model car_img {
+  IMG_ID   Int    @id @default(autoincrement())
+  C_ID     Int
+  FileName String @db.VarChar(256)
+  IMG_FILE Bytes  @db.Blob
+  car      car    @relation(fields: [C_ID], references: [C_ID], onUpdate: Restrict, map: "car_img_ibfk_1")
+
+  @@index([C_ID], map: "C_ID")
+}
+
+model department {
+  DP_ID    Int        @id @default(autoincrement())
+  DP_NAME  String     @db.VarChar(100)
+  employee employee[]
+}
+
+model employee {
+  EM_ID          Int           @id @default(autoincrement())
+  EM_ID_CARD     String        @db.Char(13)
+  EM_NAME        String        @db.VarChar(100)
+  EM_ADDRESS     String        @db.TinyText
+  EM_GENDER      String        @db.Char(6)
+  EM_TEL         String        @db.Char(10)
+  EM_BRITHDAY    DateTime      @db.Date
+  DP_ID          Int
+  P_ID           Int
+  EM_SALARY      Float
+  EM_HIRE_DATE   DateTime      @db.Date
+  EM_IS_ACTIVARE Boolean
+  EM_FINE        Float         @default(0)
+  department     department    @relation(fields: [DP_ID], references: [DP_ID], onUpdate: Restrict, map: "Department")
+  position       position      @relation(fields: [P_ID], references: [P_ID], onUpdate: Restrict, map: "Position")
+  favorite       favorite[]
+  payment        payment[]
+  reservation    reservation[]
+
+  @@index([DP_ID], map: "Department")
+  @@index([P_ID], map: "Position")
+}
+
+model favorite {
+  F_ID     Int      @id @default(autoincrement())
+  EM_ID    Int
+  C_ID     Int
+  car      car      @relation(fields: [C_ID], references: [C_ID], onUpdate: Restrict, map: "Car")
+  employee employee @relation(fields: [EM_ID], references: [EM_ID], onUpdate: Restrict, map: "Employee")
+
+  @@index([C_ID], map: "Car")
+  @@index([EM_ID], map: "Employee")
+}
+
+model payment {
+  PM_ID     Int      @id @default(autoincrement())
+  PM_IMG    Bytes    @db.Blob
+  PM_AMOUNT Bytes    @db.Blob
+  PM_TIME   DateTime @db.DateTime(0)
+  PM_NOTE   String   @db.Text
+  PM_STATUS String   @default("P") @db.Char(1)
+  EM_ID     Int
+  employee  employee @relation(fields: [EM_ID], references: [EM_ID], onUpdate: Restrict, map: "payment_ibfk_1")
+
+  @@index([EM_ID], map: "EM_ID")
+}
+
+model position {
+  P_ID     Int        @id @default(autoincrement())
+  P_NAME   String     @db.VarChar(50)
+  P_LEVEL  Int
+  employee employee[]
+}
+
+model reservation {
+  R_ID            Int       @id @default(autoincrement())
+  R_DESCRIPTION   String    @db.Text
+  C_ID            Int
+  R_TIME_BOOK     DateTime  @default(now()) @db.Timestamp(0)
+  R_TIME_RETURN   DateTime  @db.DateTime(0)
+  EM_ID           Int
+  R_STATUS        String    @default("P") @db.Char(1)
+  R_IS_RETURN     Boolean   @default(false)
+  R_Admin_Note    String?   @db.Text @default(null)
+  R_TIME_RETURNED DateTime? @db.Timestamp(0) @default(null)
+  car             car       @relation(fields: [C_ID], references: [C_ID], onUpdate: Restrict, map: "reservation_ibfk_1")
+  employee        employee  @relation(fields: [EM_ID], references: [EM_ID], onUpdate: Restrict, map: "reservation_ibfk_2")
+
+  @@index([C_ID], map: "reservation_ibfk_1")
+  @@index([EM_ID], map: "reservation_ibfk_2")
+}
