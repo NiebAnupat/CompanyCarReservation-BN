@@ -22,7 +22,7 @@ model car_img {
   IMG_ID   Int    @id @default(autoincrement())
   C_ID     Int
   FileName String @db.VarChar(256)
-  IMG_FILE Bytes  @db.Blob
+  IMG_FILE Bytes
   car      car    @relation(fields: [C_ID], references: [C_ID], onUpdate: Restrict, map: "car_img_ibfk_1")
 
   @@index([C_ID], map: "C_ID")
@@ -98,8 +98,8 @@ model reservation {
   EM_ID           Int
   R_STATUS        String    @default("P") @db.Char(1)
   R_IS_RETURN     Boolean   @default(false)
-  R_Admin_Note    String?   @db.Text @default(null)
-  R_TIME_RETURNED DateTime? @db.Timestamp(0) @default(null)
+  R_Admin_Note    String?   @db.Text
+  R_TIME_RETURNED DateTime? @db.Timestamp(0)
   car             car       @relation(fields: [C_ID], references: [C_ID], onUpdate: Restrict, map: "reservation_ibfk_1")
   employee        employee  @relation(fields: [EM_ID], references: [EM_ID], onUpdate: Restrict, map: "reservation_ibfk_2")
 
