@@ -3,13 +3,15 @@ class car_img {
     _IMG_ID = null;
     _C_ID = null;
     _FileName = null;
+    _OriginalName = null;
     _IMG_FILE = null;
 
 
-    constructor( C_ID, FileName, IMG_FILE ) {
+
+
+    constructor(C_ID,FileName) {
         this._C_ID = C_ID;
         this._FileName = FileName;
-        this._IMG_FILE = IMG_FILE;
     }
 
     get IMG_ID() {
@@ -42,6 +44,14 @@ class car_img {
 
     set IMG_FILE( value ) {
         this._IMG_FILE = value;
+    }
+
+    get OriginalName() {
+        return this._OriginalName;
+    }
+
+    set OriginalName( value ) {
+        this._OriginalName = value;
     }
 }
 
