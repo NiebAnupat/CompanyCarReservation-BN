@@ -5,6 +5,7 @@ const upload = require("../middleware/upload");
 const {
   getCars,
   getCar,
+  getCarsByEmployee,
   createCar,
   updateCar,
   deleteCar,
@@ -15,6 +16,9 @@ const {
 router.get("/all", getCars);
 
 router.get("/by/:id", getCar);
+
+router.get("/:EM_ID/cars",getCarsByEmployee);
+
 
 router.get("/favoritecar/:EM_ID", getFavoriteCars);
 

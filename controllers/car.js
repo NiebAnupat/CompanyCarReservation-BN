@@ -28,6 +28,42 @@ const getCars = async ( req, res ) => {
 
 };
 
+const getCarsByEmployee = async ( req, res ) => {
+    const emId = parseInt( req.params.EM_ID );
+    console.log( `GET /api/cars/employee/:${ emId }` );
+    try {
+        // get employee level
+        const employee = await prisma.employee.findUnique( {
+            where : {
+                EM_ID : emId,
+            }
+        })
+
+        const cars = await prisma.car.findMany( {
+            where : {
+                C_STATUS : true,
+                C_LEVEL : {
+                    lte : employee.P_ID
+                }
+            },
+            include : {
+                car_img : true,
+                favorite : true,
+            },
+        })
+
+        res.json( cars );
+        res.status( 200 );
+        console.log( "Sent Cars" );
+        res.end();
+    } catch ( error ) {
+        console.log( error );
+        res.status( 500 );
+        res.end();
+    }
+}
+
+
 const getCar = async ( req, res ) => {
     const carId = parseInt( req.params.id );
     console.log( `GET /api/cars/:${ carId }` );
@@ -308,6 +344,7 @@ const getFavoriteCars = async ( req, res ) => {
 module.exports = {
     getCars,
     getCar,
+    getCarsByEmployee,
     createCar,
     updateCar,
     deleteCar,

@@ -13,6 +13,9 @@ const getReservations = async ( req, res ) => {
             },
             include : {
                 car : true,
+            },
+            orderBy : {
+                R_ID : "desc",
             }
         } );
         res.json( reservations );
@@ -101,6 +104,7 @@ const getLatestReservation = async ( req, res ) => {
     }
 };
 
+
 const getPendingReservations = async ( req, res ) => {
     console.log( "GET /api/reservations/pending" );
     try {
@@ -135,6 +139,9 @@ const getReturnedReservations = async ( req, res ) => {
             include : {
                 employee : true,
                 car : true,
+            },
+            orderBy : {
+                R_ID : "desc",
             }
         } );
         res.json( reservations );
@@ -190,6 +197,9 @@ const getCheckedReservations = async ( req, res ) => {
             include : {
                 employee : true,
                 car : true,
+            },
+            orderBy : {
+                R_ID : "desc",
             }
         } );
         res.json( reservations );
@@ -365,6 +375,7 @@ const rejectReservation = async ( req, res ) => {
             },
             data : {
                 R_STATUS : "F",
+                R_IS_RETURN : true,
             },
         } );
         res.json( reservation );
