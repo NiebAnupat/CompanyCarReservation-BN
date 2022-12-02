@@ -8,6 +8,7 @@ const {
     getPendingReservations,
     getReturnedReservations,
     getMustReturnReservation,
+    getCheckedReservations,
     getCountTodayReservations,
     getCountTodayPending,
     getCountTodayCheck,
@@ -33,6 +34,8 @@ router.get( "/latest/:EM_ID", getLatestReservation )
 router.get( "/returned", getReturnedReservations );
 
 router.get( "/lastToReturn/:EM_ID", getMustReturnReservation );
+
+router.get( "/checked", getCheckedReservations );
 
 router.get( "/count/today", getCountTodayReservations );
 

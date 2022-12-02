@@ -178,6 +178,32 @@ const getMustReturnReservation = async ( req, res ) => {
     }
 }
 
+const getCheckedReservations = async ( req, res ) => {
+    console.log( "GET /api/reservations/checked" );
+    try {
+        const reservations = await prisma.reservation.findMany( {
+            where : {
+                NOT : {
+                    R_STATUS : "P",
+                }
+            },
+            include : {
+                employee : true,
+                car : true,
+            }
+        } );
+        res.json( reservations );
+        res.status( 200 );
+        console.log( "Sent reservations" );
+        res.end();
+    } catch ( error ) {
+        console.log( error );
+        res.json( { message : "Employee not found" } );
+        res.status( 400 );
+        res.end();
+    }
+}
+
 const getCountTodayReservations = async ( req, res ) => {
     console.log( "GET /api/reservations/count/today" );
     try {
@@ -415,8 +441,12 @@ const returnReservation = async ( req, res ) => {
         const date1 = new Date( reserv.R_TIME_RETURN );
         const date2 = new Date( R_TIME_RETURNED );
         const diffTime = Math.abs( date2 - date1 );
-        const diffDays = Math.ceil( diffTime / (1000 * 60 * 60 * 24) );
+        var diffDays = Math.ceil( diffTime / (1000 * 60 * 60 * 24) );
         var fine = 0.0;
+
+        // if time almost day then add 1 day
+        if ( diffTime % (1000 * 60 * 60 * 24) > 0 ) diffDays += 1;
+
         if ( diffDays > 0 ) fine = diffDays * 100;
         console.log( "fine: ", fine );
 
@@ -458,6 +488,7 @@ module.exports = {
     getPendingReservations,
     getReturnedReservations,
     getMustReturnReservation,
+    getCheckedReservations,
     getCountTodayReservations,
     getCountTodayPending,
     getCountTodayCheck,

@@ -8,7 +8,11 @@ const getPayments = async ( req, res ) => {
     const emId = parseInt( req.params.EM_ID );
     console.log( "GET /api/payments EM_ID: ", emId );
     try {
-        const payments = await prisma.payment.findMany( { } );
+        const payments = await prisma.payment.findMany( {
+            include : {
+                employee : true,
+            }
+        } );
         res.json( payments );
         res.status( 200 );
         console.log( "Sent payments" );
@@ -49,6 +53,9 @@ const getPendingPayments = async ( req, res ) => {
             where : {
                 PM_STATUS : "P",
             },
+            include : {
+                employee : true,
+            }
         } );
         res.json( payments );
         res.status( 200 );
