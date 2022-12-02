@@ -15,7 +15,7 @@ const getReservations = async ( req, res ) => {
                 car : true,
             }
         } );
-        res.json( reservations);
+        res.json( reservations );
         res.status( 200 );
         res.end();
     } catch ( error ) {
@@ -80,6 +80,7 @@ const getLatestReservation = async ( req, res ) => {
         const reservation = await prisma.reservation.findFirst( {
             where : {
                 EM_ID : emId,
+                R_IS_RETURN : false,
             },
             include : {
                 car : true,
@@ -112,8 +113,6 @@ const getPendingReservations = async ( req, res ) => {
                 car : true,
             }
         } );
-
-
         res.json( reservations );
         res.status( 200 );
         console.log( "Sent reservations" );
@@ -126,13 +125,66 @@ const getPendingReservations = async ( req, res ) => {
     }
 }
 
+const getReturnedReservations = async ( req, res ) => {
+    console.log( "GET /api/reservations/returned" );
+    try {
+        const reservations = await prisma.reservation.findMany( {
+            where : {
+                R_IS_RETURN : true,
+            },
+            include : {
+                employee : true,
+                car : true,
+            }
+        } );
+        res.json( reservations );
+        res.status( 200 );
+        console.log( "Sent reservations" );
+        res.end();
+    } catch ( error ) {
+        console.log( error );
+        res.json( { message : "Employee not found" } );
+        res.status( 400 );
+        res.end();
+    }
+}
+
+const getMustReturnReservation = async ( req, res ) => {
+    console.log( "GET /api/reservations/mustreturn" );
+    const EM_ID = parseInt( req.params.EM_ID );
+    try {
+       const reservation = await prisma.reservation.findFirst( {
+            where : {
+                EM_ID : EM_ID,
+                R_IS_RETURN : false,
+                R_STATUS : "T",
+            },
+           orderBy : {
+                R_ID : "desc",
+           },
+            include : {
+                car : true,
+            }
+       } );
+        res.json( reservation );
+        res.status( 200 );
+        console.log( "Sent count" );
+        res.end();
+    } catch ( error ) {
+        console.log( error );
+        res.json( { message : "Reservation not found" } );
+        res.status( 400 );
+        res.end();
+    }
+}
+
 const getCountTodayReservations = async ( req, res ) => {
     console.log( "GET /api/reservations/count/today" );
     try {
         const reservations = await prisma.reservation.findMany( {
             where : {
                 R_DATE_MAKE : {
-                    gte :  new Date( moment().format('YYYY-MM-DD') ),
+                    gte : new Date( moment().format( 'YYYY-MM-DD' ) ),
                 }
             },
         } );
@@ -155,7 +207,7 @@ const getCountTodayPending = async ( req, res ) => {
             where : {
                 R_STATUS : "P",
                 R_DATE_MAKE : {
-                    gte :  new Date( moment().format('YYYY-MM-DD') ),
+                    gte : new Date( moment().format( 'YYYY-MM-DD' ) ),
                 }
             },
         } );
@@ -177,7 +229,7 @@ const getCountTodayCheck = async ( req, res ) => {
         const reservations = await prisma.reservation.findMany( {
             where : {
                 R_DATE_MAKE : {
-                    gte :  new Date( moment().format('YYYY-MM-DD') ),
+                    gte : new Date( moment().format( 'YYYY-MM-DD' ) ),
                 },
                 NOT : {
                     R_STATUS : "P",
@@ -198,17 +250,17 @@ const getCountTodayCheck = async ( req, res ) => {
 }
 
 const createReservation = async ( req, res ) => {
-    const { R_DESCRIPTION, C_ID,R_TIME_BOOK, R_TIME_RETURN, EM_ID } = req.body;
+    const { R_DESCRIPTION, C_ID, R_TIME_BOOK, R_TIME_RETURN, EM_ID } = req.body;
     console.log( "POST /api/reservations" );
-    console.log(C_ID);
+    console.log( C_ID );
 
     try {
         const reservation = await prisma.reservation.create( {
             data : {
                 R_DESCRIPTION : R_DESCRIPTION,
                 C_ID : parseInt( C_ID ),
-                R_DATE_MAKE :  new Date( moment().format('YYYY-MM-DD') ),
-                R_TIME_BOOK: R_TIME_BOOK,
+                R_DATE_MAKE : new Date( moment().format( 'YYYY-MM-DD' ) ),
+                R_TIME_BOOK : R_TIME_BOOK,
                 R_TIME_RETURN : R_TIME_RETURN,
                 EM_ID : parseInt( EM_ID ),
             },
@@ -348,40 +400,39 @@ const adminNote = async ( req, res ) => {
 };
 
 const returnReservation = async ( req, res ) => {
-    const {R_ID,R_RETURN_NOTE,R_TIME_RETURNED} = req.body;
+    const { R_ID, R_RETURN_NOTE, R_TIME_RETURNED } = req.body;
     console.log( "PUT /api/reservations/return/", R_ID );
     if ( req.file === undefined ) return res.status( 400 ).send( "กรุณาเพิ่มรูปภาพ" );
     const file = req.file;
 
     try {
-    // calculate fine by date
-    const reserv = await prisma.reservation.findUnique( {
-        where : {
-            R_ID : R_ID,
-        }
-    } );
-    const date1 = new Date( reserv.R_TIME_RETURN );
-    const date2 = new Date( R_TIME_RETURNED );
-    const diffTime = Math.abs( date2 - date1 );
-    const diffDays = Math.ceil( diffTime / ( 1000 * 60 * 60 * 24 ) );
-    const fine = diffDays * 100;
-    console.log( "fine: ", fine );
+        // calculate fine by date
+        const reserv = await prisma.reservation.findUnique( {
+            where : {
+                R_ID : parseInt( R_ID ),
+            }
+        } );
+        const date1 = new Date( reserv.R_TIME_RETURN );
+        const date2 = new Date( R_TIME_RETURNED );
+        const diffTime = Math.abs( date2 - date1 );
+        const diffDays = Math.ceil( diffTime / (1000 * 60 * 60 * 24) );
+        var fine = 0.0;
+        if ( diffDays > 0 ) fine = diffDays * 100;
+        console.log( "fine: ", fine );
 
         const reservation = await prisma.reservation.update( {
             where : {
-                R_ID : parseInt(R_ID),
-
+                R_ID : parseInt( R_ID ),
             },
             data : {
                 R_TIME_RETURNED : new Date().toISOString(),
+                R_IS_RETURN : true,
                 R_RETURN_NOTE : R_RETURN_NOTE,
                 R_RETURN_IMG : fs.readFileSync(
                     __basedir + "/assets/uploads/" + file.filename
                 ),
                 R_FINE : fine,
-                employee : {
-
-                }
+                employee : {}
             },
             include : {
                 employee : true,
@@ -405,6 +456,8 @@ module.exports = {
     getRecentReservations,
     getLatestReservation,
     getPendingReservations,
+    getReturnedReservations,
+    getMustReturnReservation,
     getCountTodayReservations,
     getCountTodayPending,
     getCountTodayCheck,
