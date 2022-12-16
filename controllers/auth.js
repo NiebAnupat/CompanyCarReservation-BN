@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 const login = async (req, res) => {
-    console.log('GET /api/login')
+    console.log('POST /api/login')
     console.log(req.body)
 
     const { EM_ID, EM_ID_CARD } = req.body
@@ -16,13 +16,28 @@ const login = async (req, res) => {
         console.log(user)
         if (user) {
             if (user.EM_ID_CARD == EM_ID_CARD) {
-                res.json(user)
+
+                // check if user is admin (DP_ID = 3)
+                if (user.DP_ID == 3) {
+                    res.json({
+                        message: 'Login success',
+                        user: user,
+                        isAdmin: true,
+                    })
+                }
+                else {
+                    res.json({
+                        message: 'Login success',
+                        user: user,
+                        isAdmin: false,
+                    })
+                }
                 res.status(200)
                 console.log('Login Successful')
                 res.end()
             } else {
-                res.json({ message: 'Incorrect Password' })
-                res.status(400)
+                res.json(null)
+                res.status(200)
                 console.log('Incorrect Password')
                 res.end()
             }
